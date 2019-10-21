@@ -8,8 +8,11 @@
 
 import UIKit
 
+private let reuseIdentifier = "Cell"
+
 class ContactsController: UITableViewController {
     //MARK: Properties
+    var contacts = [Contact]()
     
     //MARK: Init
     override func viewDidLoad() {
@@ -20,6 +23,8 @@ class ContactsController: UITableViewController {
         
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(handleAddContact))
         
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: reuseIdentifier)
+        
         view.backgroundColor = .white
     }
     
@@ -27,7 +32,34 @@ class ContactsController: UITableViewController {
     //MARK: Handlers
     @objc func handleAddContact(){
         print("Did select add button")
-        self.present(UINavigationController(rootViewController: AddContactsController()), animated: true, completion: nil)
+        let controller = AddContactsController()
+        controller.delegate = self
+        
+        self.present(UINavigationController(rootViewController: controller), animated: true, completion: nil)
+    }
+    
+    //MARK: UITableView
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return contacts.count
+    }
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath)
+        cell.textLabel?.text = contacts[indexPath.row].fullName
+        return cell
     }
 
+}
+
+struct Contact {
+    var fullName: String
+}
+
+extension ContactsController: AddContactDelegate{
+    func add(_ contact: Contact) {
+        self.dismiss(animated: true) {
+            self.contacts.append(contact)
+            self.tableView.reloadData()
+        }
+    }
+    
 }
